@@ -1,0 +1,5 @@
+build/
+.gradle/
+ana.iml
+ana.ipr
+ana.iws
