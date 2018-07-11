@@ -1,4 +1,4 @@
-package net.fijma.vigenere.lib;
+package net.fijma.vigenere;
 
 
 import java.util.*;
@@ -75,23 +75,13 @@ public class Vigenere {
         return res;
     }
 
-    // frequency table if 'crypted' were decryped with 'k'
-    private static Map<Character, Double> freqFromRot(String crypted, char k) {
-        return calculateFrequencies(vigenere(crypted, String.valueOf(k), false));
-    }
-
-    // what key would lead to the least freq squareDifference when used to decrypt 'crypted'?
-    static char minimalDistance(String crypted) {
-        int res = Integer.MAX_VALUE;
-        Double min = Double.MAX_VALUE;
-        for (int i=0; i<alphabet.length(); ++i) {
-            Double d = squareDifference(freqs, freqFromRot(crypted, alphabet.charAt(i)));
-            if (d < min) {
-                min = d;
-                res = i;
-            }
+    // implementation of cipher itself
+    public static String cipher(String xs, String key, boolean encrypt) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0; i<xs.length(); ++i) {
+            sb.append(shift(xs.charAt(i), key.charAt(i % key.length()), encrypt));
         }
-        return alphabet.charAt(res);
+        return sb.toString();
     }
 
     private static int val(char c) {
@@ -104,68 +94,71 @@ public class Vigenere {
         return alphabet.charAt(d);
     }
 
-    static String stripe(String xs, int i, int n) {
+    // what single letter key would lead to the least squareDifference with frequency table when used to decrypt 'rotEncrypted'?
+    static char frequencyAnalysis(String rotEncrypted) {
+        int res = Integer.MAX_VALUE;
+        Double min = Double.MAX_VALUE;
+        for (int i=0; i<alphabet.length(); ++i) {
+            Double d = squareDifference(freqs, calculateFrequencies(cipher(rotEncrypted, String.valueOf(alphabet.charAt(i)), false)));
+            if (d < min) {
+                min = d;
+                res = i;
+            }
+        }
+        return alphabet.charAt(res);
+    }
+
+    // stripe encrypted text based on (assumed) key length
+    static String stripe(String xs, int stripe, int keyLength) {
         StringBuilder sb = new StringBuilder();
-        int p = i;
-        while (p<xs.length()) {
-            sb.append(xs.charAt(p));
-            p += n;
+        while (stripe < xs.length()) {
+            sb.append(xs.charAt(stripe));
+            stripe += keyLength;
         }
         return sb.toString();
     }
 
-    public static String vigenere(String xs, String key, boolean encrypt) {
+    // perform frequency analysis on all stripes of input 'xs' based on (assumed) key length
+    private static String analyseStripes(String xs, int keyLength) {
         StringBuilder sb = new StringBuilder();
-        xs = xs.toUpperCase();
-        for (int i=0; i<xs.length(); ++i) {
-            sb.append(shift(xs.charAt(i), key.charAt(i % key.length()), encrypt));
-        }
-        return sb.toString();
-    }
-
-    private static String analyseStripes(String xs, int stripes) {
-        StringBuilder sb = new StringBuilder();
-        for (int stripe = 0; stripe < stripes; stripe++) {
-            String ss = stripe(xs, stripe, stripes);
-            sb.append(minimalDistance(ss));
+        for (int stripe = 0; stripe < keyLength; stripe++) {
+            String ss = stripe(xs, stripe, keyLength);
+            sb.append(frequencyAnalysis(ss));
         }
         return sb.toString();
     }
 
     public static void subStrings(String xs) {
-        boolean keep = true;
+        boolean cont = true;
 
         Set<Integer> gcds = new HashSet<>();
 
-        for (int length = 4; keep ; ++length) {
-            HashMap<String, List<Integer>> occurrences = new HashMap<>();
+        // while we found any repeating words of given length, continue
+        for (int length = 4; cont ; ++length) {
 
-            // all substring of length 'length'
+            // all substrings of length 'length' with their positions
+            HashMap<String, List<Integer>> substrings = new HashMap<>();
             for (int i = 0; i < xs.length() - length + 1; i++) {
                 String ss = xs.substring(i, i + length);
-                List<Integer> ps = occurrences.get(ss);
-                if (ps == null) {
-                    ps = new ArrayList<>();
-                    occurrences.put(ss, ps);
-                }
+                List<Integer> ps = substrings.computeIfAbsent(ss, k -> new ArrayList<>());
                 ps.add(i);
             }
 
-            keep = false;
+            // remove substrings occurring less than three times
+            substrings.entrySet().removeIf(e -> e.getValue().size() < 3);
+
+            cont = false;
             // all occurring more than twice:
-            for (Map.Entry<String, List<Integer>> e : occurrences.entrySet()) {
-                if (e.getValue().size() > 2) {
-                    keep = true; // continue with next length
-                    int gggg = Util.gcd(e.getValue().get(0), e.getValue().get(1));
-                    for (int l=2; l<e.getValue().size(); l++) {
-                        gggg = Util.gcd(gggg, e.getValue().get(l));
-                    }
-                    if (gggg > 1) {
-                        gcds.add(gggg);
-                    }
+            for (Map.Entry<String, List<Integer>> e : substrings.entrySet()) {
+                cont = true; // continue with next length
+                int gggg = Util.gcd(e.getValue().get(0), e.getValue().get(1));
+                for (int l=2; l<e.getValue().size(); l++) {
+                    gggg = Util.gcd(gggg, e.getValue().get(l));
+                }
+                if (gggg > 1) {
+                    gcds.add(gggg);
                 }
             }
-
         }
 
         List<Integer> sorted = new ArrayList<>(gcds);

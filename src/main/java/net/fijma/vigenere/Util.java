@@ -1,4 +1,4 @@
-package net.fijma.vigenere.lib;
+package net.fijma.vigenere;
 
 import java.util.List;
 

@@ -25,5 +25,5 @@ idea.project.ipr {
 	}
 }
 
-mainClassName = 'net.fijma.vigenere.Main'
+mainClassName = 'net.fijma.vigenere.cli.Main'
 
