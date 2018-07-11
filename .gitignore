@@ -1,5 +1,7 @@
+*.txt
+out/
 build/
 .gradle/
-ana.iml
-ana.ipr
-ana.iws
+vigenere.iml
+vigenere.ipr
+vigenere.iws
