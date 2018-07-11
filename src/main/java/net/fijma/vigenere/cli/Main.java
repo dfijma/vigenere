@@ -54,7 +54,7 @@ public class Main {
                 System.out.println(Vigenere.cipher(input(), key(args[1]), "encrypt".equals(args[0])));
                 break;
             case "analyse":
-                Vigenere.subStrings(input());
+                Vigenere.analyse(input());
                 break;
             default:
                 usage();

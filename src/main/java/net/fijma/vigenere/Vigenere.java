@@ -1,6 +1,7 @@
 package net.fijma.vigenere;
 
 
+import java.net.URISyntaxException;
 import java.util.*;
 
 public class Vigenere {
@@ -128,13 +129,13 @@ public class Vigenere {
         return sb.toString();
     }
 
-    public static void subStrings(String xs) {
+    public static void analyse(String xs) {
         boolean cont = true;
 
         Set<Integer> gcds = new HashSet<>();
 
         // while we found any repeating words of given length, continue
-        for (int length = 4; cont ; ++length) {
+        for (int length = 10; cont ; ++length) {
 
             // all substrings of length 'length' with their positions
             HashMap<String, List<Integer>> substrings = new HashMap<>();
@@ -147,30 +148,47 @@ public class Vigenere {
             // remove substrings occurring less than three times
             substrings.entrySet().removeIf(e -> e.getValue().size() < 3);
 
-            cont = false;
-            // all occurring more than twice:
+            cont = false; // reset to true if we find something, so that we will continue with length+1
+
+            System.out.println("length: " + length);
             for (Map.Entry<String, List<Integer>> e : substrings.entrySet()) {
                 cont = true; // continue with next length
-                int gggg = Util.gcd(e.getValue().get(0), e.getValue().get(1));
+                List<Integer> positions = e.getValue(); // at least 3 position => at least 2 distances
+
+                int gcdDiff = positions.get(1) - positions.get(0);
+                System.out.print(gcdDiff + " ");
                 for (int l=2; l<e.getValue().size(); l++) {
-                    gggg = Util.gcd(gggg, e.getValue().get(l));
+                    gcdDiff = Util.gcd(gcdDiff, positions.get(l) - positions.get(l-1));
+                    System.out.print((positions.get(l) - positions.get(l-1)) + " ");
                 }
-                if (gggg > 1) {
-                    gcds.add(gggg);
-                }
+                System.out.println(" = ggd " + gcdDiff);
+                gcds.add(gcdDiff);
             }
         }
 
         List<Integer> sorted = new ArrayList<>(gcds);
-        List<String> keys = new ArrayList<>();
         Collections.sort(sorted);
+
+        for (int i=0; i<sorted.size(); ++i) {
+            System.out.println(sorted.get(i) + " ");
+        }
+        System.out.println();
+
+        int gcd = sorted.get(0);
+        for (int i = 1; i<sorted.size(); ++i) {
+            gcd = Util.gcd(gcd, sorted.get(i));
+        }
+
+        System.out.println("general: " + gcd);
+
+        List<String> keys = new ArrayList<>();
         for (Integer e : sorted) {
             String key = analyseStripes(xs, e);
 
-            if (!Util.isRepeatOfAny(keys, key)) {
+            //if (!Util.isRepeatOfAny(keys, key)) {
                 System.out.println(e + ":" + key);
                 keys.add(key);
-            }
+            //}//
         }
     }
 
