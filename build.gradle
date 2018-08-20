@@ -11,7 +11,8 @@ repositories {
 
 dependencies {
     compile group: 'xom', name: 'xom', version: '1.2.5'
-	testCompile 'junit:junit:4.12'
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+    testCompile 'junit:junit:4.12'
 }
 
 idea.project.ipr {
@@ -22,7 +23,7 @@ idea.project.ipr {
         gitSettings.children().clear()
         // add new mappings
         gitSettings.appendNode 'mapping', [directory: "${project.projectDir}", vcs: "Git"]
-	}
+    }
 }
 
 mainClassName = 'net.fijma.vigenere.cli.Main'

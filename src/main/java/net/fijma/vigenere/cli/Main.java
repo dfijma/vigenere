@@ -1,13 +1,15 @@
 package net.fijma.vigenere.cli;
 
 import net.fijma.vigenere.Vigenere;
+import org.apache.commons.cli.*;
 
 import java.util.Scanner;
 
 public class Main {
 
-    private static void usage() {
-        System.err.println("usage: encrypt <key> | decrypt <key> | analyse");
+    private static void usage(Options options) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("vigenere", options);
         System.exit(1);
     }
 
@@ -27,12 +29,12 @@ public class Main {
         return sb.toString();
     }
 
-    private static String key(String raw) {
+    private static String key(Options options, String raw) {
         StringBuilder sb = new StringBuilder();
         for (int i=0; i<raw.length(); i++) {
             char c = Character.toUpperCase(raw.charAt(i));
             if (c<'A' || c>'Z') {
-                usage();
+                usage(options);
             }
             sb.append(c);
         }
@@ -41,23 +43,38 @@ public class Main {
 
     public static void main(String[] args) {
 
-        if (args.length < 1) {
-            usage();
-        }
+        Options options = new Options();
+        options.addOption("d", false, "decrypt");
+        options.addOption("e", false, "encrypt");
+        options.addOption("a", false, "analyse");
+        options.addOption(Option.builder("k").optionalArg(true).hasArg().argName("key").desc("key").build());
 
-        switch (args[0]) {
-            case "decrypt":
-            case "encrypt":
-                if (args.length < 2) {
-                    usage();
-                }
-                System.out.println(Vigenere.cipher(input(), key(args[1]), "encrypt".equals(args[0])));
-                break;
-            case "analyse":
+        CommandLineParser parser = new DefaultParser();
+
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            String key = null;
+            if (cmd.hasOption("k")) {
+                key = cmd.getOptionValue("k");
+            }
+            if (cmd.hasOption("d")) {
+                if (key == null) usage(options);
+                System.out.println("decrypt using key: " + key);
+                System.out.println(Vigenere.cipher(input(), key(options, key), false));
+            } else if (cmd.hasOption("e")) {
+                if (key == null) usage(options);
+                System.out.println("encrypt using key: " + key);
+                System.out.println(Vigenere.cipher(input(), key(options, key), true));
+            } else if (cmd.hasOption("a")) {
+                System.out.println("analyse");
                 Vigenere.analyse(input());
-                break;
-            default:
-                usage();
+            } else {
+                usage(options);
+            }
+
+        } catch (ParseException e) {
+            System.err.println(e.getMessage());
+            usage(options);
         }
     }
 }

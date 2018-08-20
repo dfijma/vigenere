@@ -23,7 +23,7 @@ public class Util {
         return false;
     }
 
-    // Euclides GCD
+    // Euclid GCD
     static int gcd(int a, int b) {
         if (a == 0) {
             return b;
