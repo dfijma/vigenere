@@ -59,14 +59,14 @@ public class Main {
             }
             if (cmd.hasOption("d")) {
                 if (key == null) usage(options);
-                System.out.println("decrypt using key: " + key);
+                System.err.println("decrypting using key: " + key);
                 System.out.println(Vigenere.cipher(input(), key(options, key), false));
             } else if (cmd.hasOption("e")) {
                 if (key == null) usage(options);
-                System.out.println("encrypt using key: " + key);
+                System.err.println("encrypting using key: " + key);
                 System.out.println(Vigenere.cipher(input(), key(options, key), true));
             } else if (cmd.hasOption("a")) {
-                System.out.println("analyse");
+                System.err.println("analysing:");
                 Vigenere.analyse(input());
             } else {
                 usage(options);

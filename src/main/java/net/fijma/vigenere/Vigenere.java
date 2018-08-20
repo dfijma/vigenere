@@ -135,6 +135,7 @@ public class Vigenere {
         Set<Integer> gcds = new HashSet<>();
 
         // while we found any repeating words of given length, continue
+        // TODO: we examine repeating patterns of at least length 10, we could make this configurable
         for (int length = 10; cont ; ++length) {
 
             // all substrings of length 'length' with their positions
@@ -150,45 +151,32 @@ public class Vigenere {
 
             cont = false; // reset to true if we find something, so that we will continue with length+1
 
-            System.out.println("length: " + length);
             for (Map.Entry<String, List<Integer>> e : substrings.entrySet()) {
                 cont = true; // continue with next length
-                List<Integer> positions = e.getValue(); // at least 3 position => at least 2 distances
 
+                // calculate the gcd of the distances between the occurences of the same substring
+                List<Integer> positions = e.getValue(); // at least 3 position => at least 2 distances
                 int gcdDiff = positions.get(1) - positions.get(0);
-                System.out.print(gcdDiff + " ");
                 for (int l=2; l<e.getValue().size(); l++) {
                     gcdDiff = Util.gcd(gcdDiff, positions.get(l) - positions.get(l-1));
-                    System.out.print((positions.get(l) - positions.get(l-1)) + " ");
                 }
-                System.out.println(" = ggd " + gcdDiff);
+                // System.err.println(e.getKey() + " occurs " + e.getValue().size() + " times, gcd of distances is: " + gcdDiff);
                 gcds.add(gcdDiff);
             }
         }
 
+        // sort candidate key length
         List<Integer> sorted = new ArrayList<>(gcds);
         Collections.sort(sorted);
-
-        for (int i=0; i<sorted.size(); ++i) {
-            System.out.println(sorted.get(i) + " ");
-        }
-        System.out.println();
-
-        int gcd = sorted.get(0);
-        for (int i = 1; i<sorted.size(); ++i) {
-            gcd = Util.gcd(gcd, sorted.get(i));
-        }
-
-        System.out.println("general: " + gcd);
 
         List<String> keys = new ArrayList<>();
         for (Integer e : sorted) {
             String key = analyseStripes(xs, e);
-
-            //if (!Util.isRepeatOfAny(keys, key)) {
-                System.out.println(e + ":" + key);
+            // print analysed key, suppress key if it is a repeat of a shorter key
+            if (!Util.isRepeatOfAny(keys, key)) {
+                System.err.println("possible key length: " + e + ", key: " + key);
                 keys.add(key);
-            //}//
+            }
         }
     }
 
